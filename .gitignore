@@ -12,6 +12,8 @@ env.local
 
 # Bob Shell API Key
 *BOBSHELL_API_KEY*
+*BOB_API_KEY*
+*bob_api_key*
 
 # IBM Cloud credentials
 ibmcloud-credentials.json
@@ -56,3 +58,4 @@ build/
 *.sqlite
 *.sqlite3
 prism.db
+

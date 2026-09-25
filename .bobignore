@@ -7,6 +7,10 @@
 *BOBSHELL_API_KEY*
 *bobshell_api_key*
 
+# Bob Shell API Key - confirmed variable name
+*BOB_API_KEY*
+*bob_api_key*
+
 # IBM Cloud API Keys
 *IBM_CLOUD_API_KEY*
 *IBMCLOUD_API_KEY*
@@ -44,3 +48,4 @@ id_dsa
 # ============================================
 # DO NOT REMOVE ABOVE PATTERNS
 # ============================================
+

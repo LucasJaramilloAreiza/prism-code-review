@@ -1,0 +1,46 @@
+﻿# ============================================
+# BOB AI ASSISTANT - SECURITY IGNORE PATTERNS
+# ============================================
+# Prevents Bob from logging credentials in session history
+
+# Bob Shell API Key - explicit
+*BOBSHELL_API_KEY*
+*bobshell_api_key*
+
+# IBM Cloud API Keys
+*IBM_CLOUD_API_KEY*
+*IBMCLOUD_API_KEY*
+*apikey*
+*api-key*
+*api_key*
+
+# Generic Credentials
+*API_KEY*
+*ACCESS_TOKEN*
+*SECRET_KEY*
+*PASSWORD*
+*SECRET*
+*CREDENTIAL*
+*PRIVATE_KEY*
+*AUTH_TOKEN*
+*BEARER_TOKEN*
+
+# Environment Files
+.env
+.env.*
+*.env
+env.local
+
+# Private Keys
+*.pem
+*.key
+id_rsa
+id_dsa
+
+# Command Outputs with credentials
+*export *API_KEY*
+*echo $*API_KEY*
+
+# ============================================
+# DO NOT REMOVE ABOVE PATTERNS
+# ============================================

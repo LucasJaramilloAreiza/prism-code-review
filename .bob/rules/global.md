@@ -1,4 +1,4 @@
-﻿# PRism — Bob Project Rules
+# PRism — Bob Project Rules
 
 ## Contexto del Proyecto
 PRism es un orquestador multi-agente de revisión de Pull Requests.
@@ -26,44 +26,27 @@ IBM Bob Shell es el motor de inferencia de los 4 agentes en runtime.
   Agent mode puede modificar archivos y ejecutar comandos — peligroso para un sistema
   de solo lectura. Reservar agent mode únicamente para el desarrollo con Bob IDE.
 
-## Bob Shell — Flags Confirmados (Fase 0.5 completada)
+## Bob Shell Headless — Flags Confirmados (Smoke Test 2026-09-25)
 
-### Comando de invocación
-```bash
-bob run "<prompt>" -f json --mode ask
+BOB_SHELL_CONFIRMED_FLAGS: bob run "<prompt>" -f json --mode ask
+BOB_SHELL_ENV_VAR: BOB_API_KEY
+BOB_SHELL_MODE_RUNTIME: ask (read-only, seguro, ~0.012 Bobcoins/llamada)
+BOB_SHELL_PARSE: doble json.loads() sobre campo last_message
+REGLA: nunca usar --mode agent en runtime de PRism
+
+Doble parseo obligatorio en Python:
+```python
+outer = json.loads(cli_output)
+inner = json.loads(outer["last_message"])
+findings = inner.get("findings", [])
 ```
-
-### Variable de entorno
-- Nombre correcto: `BOB_API_KEY` (NO `BOBSHELL_API_KEY`)
-- Se pasa como variable de entorno al proceso subprocess
-
-### Modo confirmado
-- `--mode ask` ✅ CONFIRMADO — read-only, seguro, ~0.012 Bobcoins por llamada
-- `--mode agent` ❌ PROHIBIDO en runtime — puede modificar archivos
-- `--mode plan` — no probado, no necesario para PRism
 
 ### Métricas de rendimiento medidas
-- Costo por llamada: ~0.012 Bobcoins (llamadas cortas en modo ask)
+- Costo por llamada: ~0.012 Bobcoins
 - Duración promedio: 1.6s – 3.7s por llamada
 - Con 4 agentes en modo ECO (secuencial): ~6.4s – 14.8s total, ~0.048 Bobcoins
-- Con 4 agentes en modo FULL (paralelo): ~3.7s – 3.7s total, ~0.048 Bobcoins
-
-### Formato de salida de Bob Shell
-Bob devuelve un JSON con la siguiente estructura:
-```json
-{
-  "type": "...",
-  "status": "...",
-  "stats": { ... },
-  "last_message": "<STRING JSON ESCAPADO>"
-}
-```
-⚠️ **IMPORTANTE:** El campo `last_message` es un STRING que contiene JSON escapado.
-Requiere **doble parseo** en Python:
-```python
-outer = json.loads(bob_output)           # parseo 1: estructura de Bob Shell
-inner = json.loads(outer["last_message"]) # parseo 2: JSON del agente (findings)
-```
+- Con 4 agentes en modo FULL (paralelo): ~3.7s total, ~0.048 Bobcoins
+- Presupuesto de 40 Bobcoins alcanza para ~833 revisiones completas
 
 ### Implementación en BaseAgent._call_bob()
 ```python
@@ -75,14 +58,8 @@ proc = await asyncio.create_subprocess_exec(
 )
 stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=settings.BOB_MAX_TIMEOUT_SECONDS)
 outer = json.loads(stdout.decode())
-return outer["last_message"]  # string JSON — se parsea en _parse_findings()
+return outer["last_message"]  # string JSON escapado — parsear en _parse_findings()
 ```
-
-## Calibración de Presupuesto Actualizada
-- Costo real por agente: ~0.012 Bobcoins
-- Costo por revisión completa (4 agentes): ~0.048 Bobcoins
-- Presupuesto de 40 Bobcoins alcanza para ~833 revisiones completas
-- Estimaciones del plan v3.1 eran conservadoras — el presupuesto es holgado
 
 ## Formato de Respuesta de Agentes
 Cada agente debe responder con este JSON y nada más (sin markdown, sin texto extra):
@@ -90,8 +67,8 @@ Cada agente debe responder con este JSON y nada más (sin markdown, sin texto ex
 [
   {
     "severity": "critical|medium|low",
-    "title": "Título corto del finding",
-    "description": "Descripción detallada con contexto",
+    "title": "Titulo corto del finding",
+    "description": "Descripcion detallada con contexto",
     "file": "ruta/al/archivo.py",
     "line": 42
   }

@@ -1,0 +1,21 @@
+﻿version: "3.9"
+services:
+  backend:
+    build: ./backend
+    ports: ["8000:8000"]
+    environment:
+      - BOB_API_KEY=${BOB_API_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - DATABASE_URL=sqlite:///./prism.db
+      - BOB_CHAT_MODE=ask
+      - BOB_MAX_TIMEOUT_SECONDS=45
+    volumes:
+      - ./prism.db:/app/prism.db
+    networks: [prism-net]
+  frontend:
+    build: ./frontend
+    ports: ["3000:3000"]
+    depends_on: [backend]
+    networks: [prism-net]
+networks:
+  prism-net: {driver: bridge}

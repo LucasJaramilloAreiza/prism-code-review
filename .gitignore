@@ -10,10 +10,11 @@
 env.local
 .env.local
 
-# Bob Shell API Key
-*BOBSHELL_API_KEY*
+# Bob Shell API Key — all known patterns
+*BOB_API_KEY*
 *BOB_API_KEY*
 *bob_api_key*
+bob_prod_bob-apikey_*
 
 # IBM Cloud credentials
 ibmcloud-credentials.json

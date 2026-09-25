@@ -1,8 +1,10 @@
-﻿# PRism — Multi-Agent Code Review Orchestrator
+# PRism — Multi-Agent Code Review Orchestrator
 
 > IBM Bob 2.0 Hackathon Entry
 
-PRism analyzes GitHub Pull Requests using **four specialized AI agents** powered by **IBM Bob Shell**, and delivers a prioritized risk panel (🔴 Critical / 🟡 Medium / 🟢 Low) in real time.
+PRism analyzes GitHub Pull Requests using **four specialized AI agents** powered by **IBM Bob Shell**, and delivers a prioritized risk panel (🔴 Critical / 🟡 Medium / 🟢 Low) in real time via WebSocket streaming.
+
+---
 
 ## Architecture
 
@@ -10,55 +12,71 @@ PRism analyzes GitHub Pull Requests using **four specialized AI agents** powered
 PR URL → GitHub API (diff + linked issue)
               ↓
          Orchestrator
-    ┌─────────────────────┐
-    │  Security Sentinel  │  OWASP Top 10, secrets, injections
-    │  Logic Auditor      │  Acceptance criteria vs. code
-    │  Performance Hawk   │  N+1, O(n²), blocking calls
-    │  Blast-Radius Mapper│  Downstream impact analysis
-    └─────────────────────┘
+    ┌─────────────────────────────────────────┐
+    │  Security Sentinel   OWASP Top 10, secrets, injections     │
+    │  Logic Auditor       Acceptance criteria vs. code          │
+    │  Performance Hawk    N+1, O(n²), blocking calls            │
+    │  Blast-Radius Mapper Downstream impact analysis            │
+    └─────────────────────────────────────────┘
               ↓
       Risk Panel (WebSocket streaming)
 ```
 
-Each agent is powered by `bob --auth-method api-key -p "<prompt>" --chat-mode ask`.
+Each agent is powered by:
+```bash
+bob run "<prompt>" -f json --mode ask
+```
+`--mode ask` is read-only and used exclusively in runtime — agent mode is prohibited.
 
-## Quick Start
+---
 
+## Bob Shell Headless Setup
+Instalar: `powershell -ep Bypass 'irm -Uri "https://bob.ibm.com/download/bobshell.ps1" | iex'`
+Licencia: `bob --accept-license`
+Variable: `$env:BOB_API_KEY="tu_key"`
+
+---
+
+## Docker Quick Start
 ```bash
 cp .env.example .env
-# Edit .env and add your BOBSHELL_API_KEY and GITHUB_TOKEN
+# edita .env con tus keys reales
 docker-compose up --build
 ```
 
-Open http://localhost:3000
+---
 
-## Required Environment Variables
-
-| Variable | Description |
-|---|---|
-| `BOBSHELL_API_KEY` | Bob Inference API Key from bob.ibm.com → Settings → API Keys |
-| `GITHUB_TOKEN` | GitHub Personal Access Token (repo read scope) |
-| `DATABASE_URL` | SQLite path (default: `sqlite:///./prism.db`) |
-| `BOB_MAX_TIMEOUT_SECONDS` | Bob Shell subprocess timeout (default: 45) |
-| `BOB_CHAT_MODE` | Bob chat mode confirmed in smoke test (default: `ask`) |
-
-## Modes
-
-| Mode | Description | Bobcoins |
+## Environment Variables
+| Variable | Descripción | Requerida |
 |---|---|---|
-| **ECO** | Sequential agents, diff ≤200 lines | ~1 per review |
-| **FULL** | Parallel agents, full diff | ~4-6 per review |
+| BOB_API_KEY | Bob Shell API Key (inference) | Sí |
+| GITHUB_TOKEN | GitHub PAT para PRs | Sí |
+| BOB_CHAT_MODE | ask (default) | No |
+
+---
+
+## Two Modes — ECO / FULL
+ECO: modo ask secuencial, diff ≤200 líneas, ~0.05 Bobcoins por revisión.
+FULL: modo ask paralelo, diff completo, ~0.20-0.50 Bobcoins por revisión.
+
+---
 
 ## Stack
 
-- **Backend:** FastAPI + WebSockets + aiosqlite
-- **Frontend:** Next.js 14 + Tailwind CSS + lucide-react
-- **AI Engine:** IBM Bob Shell (`--auth-method api-key`)
-- **Infrastructure:** Docker Compose
+| Layer | Technology |
+|---|---|
+| AI Engine | IBM Bob Shell (`bob run -f json --mode ask`) |
+| Backend | FastAPI + WebSockets + aiosqlite |
+| Frontend | Next.js 14 + Tailwind CSS + lucide-react |
+| Infrastructure | Docker Compose |
+| Database | SQLite (persistent via Docker volume) |
+
+---
 
 ## Bob Sessions
 
 Screenshots of Bob IDE sessions used during development are in `bob_sessions/`.
+See `demo_data/smoke_test_log.md` for the Fase 0.5 headless validation results.
 
 ---
 

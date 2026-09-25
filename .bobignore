@@ -3,13 +3,11 @@
 # ============================================
 # Prevents Bob from logging credentials in session history
 
-# Bob Shell API Key - explicit
-*BOBSHELL_API_KEY*
-*bobshell_api_key*
-
-# Bob Shell API Key - confirmed variable name
+# Bob Shell API Key — all known patterns
+*BOB_API_KEY*
 *BOB_API_KEY*
 *bob_api_key*
+bob_prod_bob-apikey_*
 
 # IBM Cloud API Keys
 *IBM_CLOUD_API_KEY*

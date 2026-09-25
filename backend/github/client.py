@@ -1,4 +1,4 @@
-﻿import re
+import re
 import httpx
 from typing import Optional
 from backend.config import settings
@@ -79,5 +79,5 @@ class GitHubClient:
         from pathlib import Path
         path = Path("demo_data/mock_issue.json")
         if path.exists():
-            return json.loads(path.read_text(encoding="utf-8"))
+            return json.loads(path.read_text(encoding="utf-8-sig"))
         return {"number": 0, "title": "No issue linked", "body": "", "labels": []}

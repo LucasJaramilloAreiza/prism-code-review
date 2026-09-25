@@ -1,4 +1,4 @@
-﻿from backend.agents.base import BaseAgent
+from backend.agents.base import BaseAgent
 
 class SecuritySentinel(BaseAgent):
     name = "SecuritySentinel"

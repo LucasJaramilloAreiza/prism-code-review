@@ -34,6 +34,9 @@ async def create_review(req: ReviewRequest):
             await save_report(report)
         except Exception:
             pass
+        # Keep queue alive 30s so late WS connections can still receive review_complete
+        await asyncio.sleep(30)
+        review_queues.pop(review_id, None)
 
     asyncio.create_task(run())
     return {"id": review_id}
@@ -47,12 +50,16 @@ async def ws_review(websocket: WebSocket, review_id: str):
     await websocket.accept()
     queue = review_queues.get(review_id)
     if not queue:
-        await websocket.send_json({"event": "error", "message": "Unknown review_id"})
+        await websocket.send_json({"event": "error", "message": "Review not found or already expired"})
         await websocket.close()
         return
     try:
         while True:
-            event = await queue.get()
+            try:
+                event = await asyncio.wait_for(queue.get(), timeout=120)
+            except asyncio.TimeoutError:
+                await websocket.send_json({"event": "error", "message": "Review timed out"})
+                break
             await websocket.send_json(event)
             if event.get("event") in ("review_complete", "error"):
                 break

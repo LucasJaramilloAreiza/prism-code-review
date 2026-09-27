@@ -43,9 +43,11 @@ async def status():
         result["github_token"] = "missing or invalid"
 
     # Check bob CLI is reachable
+    import shutil
+    bob_path = shutil.which("bob") or r"C:\Users\LUCASJARAMILLOAREIZA\AppData\Roaming\npm\bob.cmd"
     try:
         proc = await asyncio.create_subprocess_exec(
-            "bob", "--version",
+            bob_path, "--version",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )

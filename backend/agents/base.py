@@ -1,9 +1,12 @@
 import asyncio
 import json
 import os
+import shutil
 from abc import ABC, abstractmethod
 from backend.config import settings
 from backend.models import AgentResult, Finding, Severity
+
+BOB_PATH = shutil.which("bob") or r"C:\Users\LUCASJARAMILLOAREIZA\AppData\Roaming\npm\bob.cmd"
 
 class BaseAgent(ABC):
     name: str = "base"
@@ -30,7 +33,7 @@ class BaseAgent(ABC):
     async def _call_bob(self, prompt: str) -> str:
         env = {**os.environ, "BOB_API_KEY": self.settings.BOB_API_KEY}
         proc = await asyncio.create_subprocess_exec(
-            "bob", "run", prompt, "-f", "json", "--mode", self.settings.BOB_CHAT_MODE,
+            BOB_PATH, "run", prompt, "-f", "json", "--mode", self.settings.BOB_CHAT_MODE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             env=env,

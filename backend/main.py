@@ -21,6 +21,44 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 async def health():
     return {"status": "ok"}
 
+@app.get("/api/status")
+async def status():
+    import subprocess, os
+    result = {"database": "ok", "bob_api_key": "ok", "github_token": "ok"}
+
+    # Check DB
+    try:
+        async with __import__("aiosqlite").connect("prism.db") as db:
+            await db.execute("SELECT 1")
+    except Exception as e:
+        result["database"] = f"error: {str(e)[:100]}"
+
+    # Check BOB_API_KEY is set (don't expose value)
+    from backend.config import settings
+    if not settings.BOB_API_KEY or len(settings.BOB_API_KEY) < 10:
+        result["bob_api_key"] = "missing or invalid"
+
+    # Check GITHUB_TOKEN is set
+    if not settings.GITHUB_TOKEN or len(settings.GITHUB_TOKEN) < 10:
+        result["github_token"] = "missing or invalid"
+
+    # Check bob CLI is reachable
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            "bob", "--version",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=5)
+        result["bob_cli"] = stdout.decode().strip()[:60] or "ok"
+    except FileNotFoundError:
+        result["bob_cli"] = "error: bob not found in PATH"
+    except Exception as e:
+        result["bob_cli"] = f"error: {str(e)[:80]}"
+
+    result["overall"] = "ok" if all(v == "ok" or (isinstance(v, str) and not v.startswith("error") and v != "missing or invalid") for v in result.values()) else "degraded"
+    return result
+
 @app.post("/api/review")
 async def create_review(req: ReviewRequest):
     review_id = str(uuid.uuid4())

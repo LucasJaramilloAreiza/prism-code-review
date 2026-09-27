@@ -47,7 +47,10 @@ class BaseAgent(ABC):
             raise RuntimeError("Bob Shell timeout")
         if proc.returncode != 0:
             raise RuntimeError(f"Bob Shell failed: {stderr.decode()[:200]}")
-        return stdout.decode()
+        output = stdout.decode()
+        import sys
+        print(f"[BOB RAW] agent={self.name} output={output[:300]}", file=sys.stderr, flush=True)
+        return output
 
     def _parse_findings(self, cli_output: str) -> list[Finding]:
         try:
